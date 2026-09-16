@@ -1,0 +1,21 @@
+[project]
+name = "fly-in"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "jeffreyumanzor", email = "jumanzor@proton.me" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "flake8>=7.3.0",
+    "mypy>=2.3.1",
+    "pygame>=2.6.1",
+]
+
+[project.scripts]
+fly-in = "fly_in:main"
+
+[build-system]
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
