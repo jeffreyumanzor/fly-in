@@ -3,8 +3,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.models.drone import Drone
-    from src.models.zone import Zone
+    from src.models import Drone
+    from src.models import Zone
 
 
 class Connection:

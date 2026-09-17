@@ -4,7 +4,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from src.models.drone import Drone
+    from src.models import Drone
 
 
 class ZoneTypes(Enum):
