@@ -52,4 +52,4 @@ class Zone:
 
     def __repr__(self) -> str:
         """Return string representation of the drone."""
-        return f"Drone({self.name}, location={self.type.value})"
+        return f"Zone({self.name}, location={self.type.value})"

@@ -20,7 +20,7 @@ class Connection:
         self.traffic: list[Drone] = []
 
     def get_name(self, from_zone: Zone) -> str:
-        other = self.point_b if from_zone == self.point_a else self.point_b
+        other = self.point_b if from_zone == self.point_a else self.point_a
         return f"{from_zone.name}-{other.name}"
 
     def get_other_end(self, current: Zone) -> Zone:
