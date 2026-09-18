@@ -170,6 +170,141 @@ class Parser:
         base_tokens = base_info.split()
         if len(base_tokens) != 1 or "-" not in base_tokens[0]:
             raise ParsingError(
-                f"Line {line_num}: Invalid connection format. \
-                    Must be zone1-zone2."
+                f"Line {line_num}: Invalid connection format. "
+                "Must be zone1-zone2."
             )
+
+        nodes = base_info.split()
+        if len(nodes) != 2:
+            raise ParsingError(
+                f"Line {line_num}: Connection must link exactly two zones."
+            )
+
+        name1, name2 = nodes[0].strip(), nodes[1].strip()
+
+        if not name1 or not name2:
+            raise ParsingError(
+                f"Line {line_num}: Invalid zone names in connection."
+            )
+
+        if name1 == name2:
+            raise ParsingError(
+                f"Line {line_num}: Self-connections are not permitted."
+            )
+
+        if name1 not in defined_zones or name2 not in defined_zones:
+            raise ParsingError(
+                f"Line {line_num}: Connection references an undefined zone."
+            )
+
+        conn_key = (min(name1, name2), max(name1, name2))
+        if conn_key in defined_connections:
+            raise ParsingError(
+                f"Line {line_num}: Duplicate connection '{name1}-{name2}'"
+            )
+
+        metadata = self._parse_metadata(
+            remainder, line_num, self.ALLOWED_CONN_KEYS
+        )
+
+        max_cap = 1
+        if "max_link_capacity" in metadata:
+            try:
+                max_cap = int(metadata['max_link_capacioty'])
+                if max_cap <= 0:
+                    raise ValueError
+            except ValueError:
+                raise ParsingError(
+                    f"Line {line_num}: "
+                    "max_link_capacity must be a positive integer."
+                )
+
+        zone1 = graph.zones[name1]
+        zone2 = graph.zones[name2]
+
+        new_conn = Connection(zone1, zone2, max_cap)
+        graph.add_connection(new_conn)
+        defined_connections.add(conn_key)
+
+    def parse(self) -> tuple[Graph, int]:
+        try:
+            with open(self.filepath, "r", encoding="utf-8") as file:
+                lines = file.readlines()
+        except OSError as error:
+            raise ParsingError(
+                f"Unable to read file '{self.filepath}': {error.strerror}"
+            )
+
+        graph = Graph()
+        nb_drones = 0
+        nb_drones_found = False
+
+        has_start = False
+        has_end = False
+
+        defined_zones: set[str] = set()
+        defined_connections: set[tuple[str, str]] = set()
+
+        for line_num, raw_line in enumerate(lines, 1):
+            line = raw_line.split("#")[0].strip()
+
+            if not line:
+                continue
+
+            if not nb_drones_found:
+                if not line.startswith("nb_drones:"):
+                    raise ParsingError(
+                        f"Line {line_num}: First non-comment line must be "
+                        "'nb_drones: <number>'."
+                    )
+
+                try:
+                    nb_drones = int(line.split(":", 1)[1].strip())
+                    if nb_drones <= 0:
+                        raise ValueError
+                except (ValueError, IndexError):
+                    raise ParsingError(
+                        f"Line {line_num}: nb_drones must be a positive int."
+                    )
+                nb_drones_found = True
+                continue
+
+            if line.startswith(("starts_hub:", "end_hub:", "hub:")):
+                if line.startswith("start_hub:"):
+                    if has_start:
+                        raise ParsingError(
+                            f"Line {line_num}: Multiple start_hubs defined."
+                        )
+                    has_start = True
+                elif line.startswith("end_hub:"):
+                    if has_end:
+                        raise ParsingError(
+                            f"Line {line_num}: Multiple end_hubs defined."
+                        )
+                    has_end = True
+
+                self._parse_zone(line, line_num, graph, defined_zones)
+            elif line.startswith("connection:"):
+                self._parse_connection(
+                    line,
+                    line_num,
+                    graph,
+                    defined_zones,
+                    defined_connections,
+                )
+            else:
+                raise ParsingError(
+                    f"Line {line_num}: Unrecognized syntax '{line}'."
+                )
+
+        if not nb_drones_found:
+            raise ParsingError(
+                f"Line {line_num}: Map file is empty or missing 'nb_drones:'."
+            )
+
+        if not has_start or not has_end:
+            raise ParsingError(
+                "Map must define exactly one start_hub and one end_hub."
+            )
+
+        return graph, nb_drones
