@@ -12,7 +12,7 @@ class Parser:
     ALLOWED_CONN_KEYS = {"max_link_capacity"}
 
     def __init__(self, filepath: str) -> None:
-        self.filepath: str = self.filepath
+        self.filepath: str = filepath
 
     def _parse_metadata(
         self, line: str, line_num: int, allowed_keys: set[str]
@@ -34,7 +34,7 @@ class Parser:
 
         if start_idx > end_idx:
             raise ParsingError(
-                f"{line_num}: Invalid metadata bracket order."
+                f"Line {line_num}: Invalid metadata bracket order."
             )
 
         after_bracket = line[end_idx + 1:].strip()
@@ -93,19 +93,19 @@ class Parser:
 
         if "-" in name:
             raise ParsingError(
-                f"Line {line_num}: Zone '{name}' is already defined."
+                f"Line {line_num}: Zone '{name}' cannot contain dashes."
             )
 
         if name in defined_zones:
             raise ParsingError(
-                f"Line {line_num}: Zone 'name' is already defined."
+                f"Line {line_num}: Zone '{name}' is already defined."
             )
 
         try:
             x_coord, y_coord = int(x_str), int(y_str)
         except ValueError:
             raise ParsingError(
-                f"Line {line_num}: Zone coordinates must be valid integers." 
+                f"Line {line_num}: Zone coordinates must be valid integers."
             )
 
         metadata = self._parse_metadata(
@@ -174,7 +174,7 @@ class Parser:
                 "Must be zone1-zone2."
             )
 
-        nodes = base_info.split()
+        nodes = base_tokens[0].split("-")
         if len(nodes) != 2:
             raise ParsingError(
                 f"Line {line_num}: Connection must link exactly two zones."
@@ -210,7 +210,7 @@ class Parser:
         max_cap = 1
         if "max_link_capacity" in metadata:
             try:
-                max_cap = int(metadata['max_link_capacioty'])
+                max_cap = int(metadata['max_link_capacity'])
                 if max_cap <= 0:
                     raise ValueError
             except ValueError:
@@ -269,7 +269,7 @@ class Parser:
                 nb_drones_found = True
                 continue
 
-            if line.startswith(("starts_hub:", "end_hub:", "hub:")):
+            if line.startswith(("start_hub:", "end_hub:", "hub:")):
                 if line.startswith("start_hub:"):
                     if has_start:
                         raise ParsingError(
