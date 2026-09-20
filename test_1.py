@@ -12,3 +12,8 @@ for plan in plans:
     print(plan.drone.name, "llega en turno", plan.arrival_turn)
     for move in plan.moves:
         print("  turno", move.turn, "->", move.label)
+
+
+"""
+benchmarks:
+"""
