@@ -70,8 +70,8 @@ class Pathfinder:
                 f"No path found between '{start.name}' and '{end.name}'."
             )
 
-            path: list[PathStep] = []
-            zone_name = end.name
+        path: list[PathStep] = []
+        zone_name = end.name
         while zone_name != start.name:
             step = previous[zone_name]
             path.append(step)
