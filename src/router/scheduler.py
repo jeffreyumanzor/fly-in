@@ -10,6 +10,7 @@ from src.router import Pathfinder, PathStep
 class ScheduledMove:
     turn: int
     label: str
+    target: Zone | Connection
 
 
 @dataclass
@@ -136,8 +137,26 @@ class Scheduler:
         transit_turn: int,
         arrival_turn: int,
     ) -> None:
-        self,
         if cost == 1:
-            plan.moves.append(ScheduledMove(transit_turn, destination.name))
+            plan.moves.append(
+                ScheduledMove(
+                    turn=transit_turn,
+                    label=destination.name,
+                    target=destination,
+                )
+            )
         else:
-            plan.moves.append(ScheduledMove(arrival_turn, destination.name))
+            plan.moves.append(
+                ScheduledMove(
+                    turn=transit_turn,
+                    label=connection.get_name(origin),
+                    target=connection,
+                )
+            )
+            plan.moves.append(
+                ScheduledMove(
+                    turn=arrival_turn,
+                    label=destination.name,
+                    target=destination,
+                )
+            )
