@@ -15,6 +15,7 @@ class SimulationError(Exception):
 class SimulationResult:
     turns: list[list[str]]
     total_turns: int
+    frames: list[list[tuple[Drone, ScheduledMove]]]
 
 
 class SimulationEngine:
@@ -39,11 +40,15 @@ class SimulationEngine:
 
         total_turns = max((p.arrival_turn for p in self.plans), default=0)
         output_lines: list[list[str]] = []
+        frames: list[list[tuple[Drone, ScheduledMove]]] = []
 
         for turn in range(1, total_turns + 1):
-            output_lines.append(self._simulate_turn(turn))
+            tokens, frame = self._simulate_turn(turn)
+            output_lines.append(tokens)
+            frames.append(frame)
 
-        return SimulationResult(turns=output_lines, total_turns=total_turns)
+        return SimulationResult(
+            turns=output_lines, total_turns=total_turns, frames=frames)
 
     def _reset_drones(self, start: Zone) -> None:
         start.occupants.clear()
@@ -55,7 +60,9 @@ class SimulationEngine:
             drone.is_delivered = False
             start.occupants.append(drone)
 
-    def _simulate_turn(self, turn: int) -> list[str]:
+    def _simulate_turn(
+        self, turn: int
+    ) -> tuple[list[str], list[tuple[Drone, ScheduledMove]]]:
         pending: list[tuple[Drone, ScheduledMove]] = []
         origin_of_this_turn: dict[Drone, Zone] = {}
         for plan in self.plans:
@@ -74,7 +81,6 @@ class SimulationEngine:
                         f"connection '{move.label}' on turn {turn}."
                     )
                 origin_of_this_turn[drone] = drone.current_zone
-
             self._release_current_position(drone)
 
         tokens: list[str] = []
@@ -82,7 +88,7 @@ class SimulationEngine:
             self._occupy(drone, move, origin_of_this_turn)
             tokens.append(f"{drone.name}-{move.label}")
 
-        return tokens
+        return tokens, pending
 
     def _release_current_position(self, drone: Drone) -> None:
         if drone.current_connection is not None:
