@@ -32,13 +32,27 @@ MARGIN = 100
 
 
 class Renderer:
+    """Handles Pygame-based visualization and rendering of the graph map,
+    zones, connections, and drones."""
+
     def __init__(self, graph: Graph, screen_size: tuple[int, int]) -> None:
+        """Initializes the Renderer with the graph structure and
+        display dimensions.
+
+        Args:
+            graph (Graph): The graph map containing zones and connections
+            to render.
+            screen_size (tuple[int, int]): The width and height of the target
+            screen surface.
+        """
         self.graph = graph
         self.screen_size = screen_size
         self.font = pygame.font.SysFont("consolas", 14)
         self._compute_scale()
 
     def _compute_scale(self) -> None:
+        """Computes the scaling factor and offset boundaries to fit graph
+        coordinates to the screen size."""
         xs = [z.x_location for z in self.graph.zones.values()]
         ys = [z.y_location for z in self.graph.zones.values()]
         min_x, max_x = min(xs), max(xs)
@@ -55,19 +69,51 @@ class Renderer:
         self._min_x, self._min_y = min_x, min_y
 
     def to_screen(self, x: int, y: int) -> tuple[int, int]:
+        """Converts graph spatial coordinates to pixel screen coordinates.
+
+        Args:
+            x (int): The graph X coordinate.
+            y (int): The graph Y coordinate.
+
+        Returns:
+            tuple[int, int]: The corresponding (pixel_x, pixel_y) screen
+            position.
+        """
         px = MARGIN + (x - self._min_x) * self._scale
         py = MARGIN + (y - self._min_y) * self._scale
         return int(px), int(py)
 
     def zone_position(self, zone: Zone) -> tuple[int, int]:
+        """Calculates the screen pixel position for a given zone.
+
+        Args:
+            zone (Zone): The zone whose position is being resolved.
+
+        Returns:
+            tuple[int, int]: The pixel coordinates on the screen.
+        """
         return self.to_screen(zone.x_location, zone.y_location)
 
     def _resolve_zone_color(self, zone: Zone) -> tuple[int, int, int]:
+        """Resolves the RGB color for a zone based on custom overrides or
+        zone types.
+
+        Args:
+            zone (Zone): The zone to evaluate.
+
+        Returns:
+            tuple[int, int, int]: The resolved RGB color tuple.
+        """
         if zone.color is not None:
             return NAMED_COLORS.get(zone.color, DEFAULT_ZONE_COLORS[zone.type])
         return DEFAULT_ZONE_COLORS[zone.type]
 
     def draw_connections(self, surface: pygame.Surface) -> None:
+        """Draws all network connections/links between zones onto the surface.
+
+        Args:
+            surface (pygame.Surface): The Pygame surface to draw onto.
+        """
         drawn: set[Connection] = set()
         for neighbors in self.graph.adjacent.values():
             for connection in neighbors.values():
@@ -80,6 +126,12 @@ class Renderer:
                 pygame.draw.line(surface, (140, 140, 140), a, b, width)
 
     def draw_zones(self, surface: pygame.Surface) -> None:
+        """Draws all graph zones, labels, and capacity markers onto
+        the surface.
+
+        Args:
+            surface (pygame.Surface): The Pygame surface to draw onto.
+        """
         for zone in self.graph.zones.values():
             pos = self.zone_position(zone)
             color = self._resolve_zone_color(zone)
@@ -104,6 +156,15 @@ class Renderer:
         label: str,
         color: tuple[int, int, int],
     ) -> None:
+        """Draws an individual drone node and its identifier label on
+        the surface.
+
+        Args:
+            surface (pygame.Surface): The Pygame surface to draw onto.
+            position (tuple[float, float]): The pixel coordinates of the drone.
+            label (str): The text label or name of the drone.
+            color (tuple[int, int, int]): The RGB color assigned to the drone.
+        """
         pos = (int(position[0]), int(position[1]))
         pygame.draw.circle(surface, color, pos, DRONE_RADIUS)
         pygame.draw.circle(surface, (0, 0, 0), pos, DRONE_RADIUS, 1)

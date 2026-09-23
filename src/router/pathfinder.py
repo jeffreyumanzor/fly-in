@@ -9,11 +9,18 @@ from src.models import Connection, Graph, Zone, ZoneTypes
 
 @dataclass(frozen=True)
 class PathStep:
+    """Represents a single step taken along a path within the graph.
+
+    Attributes:
+        connection (Connection): The connection traversed to reach the zone.
+        zone (Zone): The destination zone reached in this step.
+    """
     connection: Connection
     zone: Zone
 
 
 class PathfindingError(Exception):
+    """Exception raised when a valid path cannot be found between two zones."""
     pass
 
 
@@ -21,10 +28,34 @@ Cost: TypeAlias = tuple[int, int]  # (real cost, penalization)
 
 
 class Pathfinder:
+    """Computes optimal paths between zones in a graph based on custom cost
+    and penalization metrics.
+    """
+
     def __init__(self, graph: Graph) -> None:
+        """Initializes the Pathfinder with the graph model.
+
+        Args:
+            graph (Graph): The graph structure containing zones
+            and connections.
+        """
         self.graph = graph
 
     def shortest_path(self, start: Zone, end: Zone) -> list[PathStep]:
+        """Calculates the shortest path between a start zone and an end zone.
+
+        Args:
+            start (Zone): The starting zone for the path.
+            end (Zone): The destination zone for the path.
+
+        Returns:
+            list[PathStep]: An ordered list of PathSteps representing
+            the optimal route.
+
+        Raises:
+            PathfindingError: If no valid path exists between the start
+            and end zones.
+        """
         if start is end:
             return []
 
