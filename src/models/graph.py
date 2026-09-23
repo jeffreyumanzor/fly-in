@@ -5,13 +5,22 @@ from src.models import Zone
 
 
 class Graph:
+    """Represents the complete network graph without external libraries.
+    """
     def __init__(self) -> None:
+        """Initialize an empty network graph.
+        """
         self.zones: dict[str, Zone] = {}
         self.adjacent: dict[str, dict[str, Connection]] = {}
         self.start_hub: Zone | None = None
         self.end_hub: Zone | None = None
 
     def add_zone(self, zone: Zone) -> None:
+        """Add a zone to the graph.
+
+        Args:
+            zone (Zone): Zone instance to register.
+        """
         if zone.name not in self.zones:
             self.zones[zone.name] = zone
             self.adjacent[zone.name] = {}
@@ -22,6 +31,12 @@ class Graph:
             self.end_hub = zone
 
     def add_connection(self, connection: Connection) -> None:
+        """Register a bidirectional connection between two zones.
+
+        Args:
+            connection (Connection): Connection instance linking two
+            registered zones.
+        """
         name_a = connection.point_a.name
         name_b = connection.point_b.name
 
@@ -34,9 +49,27 @@ class Graph:
     def get_connection(
         self, zone_a: str, zone_b: str
     ) -> Connection | None:
+        """Retrieve connection object between two zones if it exists.
+
+        Args:
+            zone_a (str): Name of the first zone.
+            zone_b (str): Name of the second zone.
+
+        Returns:
+            Connection | None: Connection if an edge exists, otherwise None.
+        """
         return self.adjacent.get(zone_a, {}).get(zone_b)
 
     def get_neighbors(self, zone_name: str) -> list[tuple[Zone, Connection]]:
+        """Return all adjacent walkable zones and their connecting edges.
+
+        Args:
+            zone_name (str): Name of the origin zone.
+
+        Returns:
+            list[tuple[Zone, Connection]]:List of tuples
+            containing (Neighbor Zone, Connection).
+        """
         neighbors: list[tuple[Zone, Connection]] = []
         for target_name, conn in self.adjacent.get(zone_name, {}).items():
             target_zone = self.zones[target_name]

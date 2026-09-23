@@ -4,19 +4,43 @@ from src.models import Connection, Zone, ZoneTypes, Graph
 
 
 class ParsingError(Exception):
+    """Exception raised for errors encountered during file parsing."""
     pass
 
 
 class Parser:
+    """Parses map description files to build graph models for zones,
+    connections, and drones."""
+
     ALLOWED_ZONE_KEYS = {"zone", "color", "max_drones"}
     ALLOWED_CONN_KEYS = {"max_link_capacity"}
 
     def __init__(self, filepath: str) -> None:
+        """Initializes the Parser with the path to the map file.
+
+        Args:
+            filepath (str): The path to the map file to be parsed.
+        """
         self.filepath: str = filepath
 
     def _parse_metadata(
         self, line: str, line_num: int, allowed_keys: set[str]
     ) -> dict[str, str]:
+        """Parses optional metadata enclosed in brackets from a line.
+
+        Args:
+            line (str): The line containing the potential metadata.
+            line_num (int): The current line number for error reporting.
+            allowed_keys (set[str]): A set of permitted metadata keys.
+
+        Returns:
+            dict[str, str]: A dictionary containing the parsed metadata
+            key-value pairs.
+
+        Raises:
+            ParsingError: If bracket syntax, order, contents, or keys are
+            invalid.
+        """
         metadata: dict[str, str] = {}
         count_open = line.count("[")
         count_close = line.count("]")
@@ -77,6 +101,19 @@ class Parser:
         graph: Graph,
         defined_zones: set[str],
     ) -> None:
+        """Parses a zone line and adds the resulting Zone to the graph.
+
+        Args:
+            line (str): The raw line defining the zone.
+            line_num (int): The current line number for error reporting.
+            graph (Graph): The graph model where the zone will be added.
+            defined_zones (set[str]): A set tracking already defined
+            zone names.
+
+        Raises:
+            ParsingError: If zone formatting, coordinates, metadata, or
+            uniqueness is violated.
+        """
         parts = line.split(":", 1)
         prefix = parts[0].strip()
         remainder = parts[1].strip()
@@ -164,6 +201,21 @@ class Parser:
         defined_zones: set[str],
         defined_connections: set[tuple[str, str]],
     ) -> None:
+        """Parses a connection line and adds the Connection to the graph.
+
+        Args:
+            line (str): The raw line defining the connection.
+            line_num (int): The current line number for error reporting.
+            graph (Graph): The graph model where the connection will be added.
+            defined_zones (set[str]): A set of defined zone names for
+            reference checking.
+            defined_connections (set[tuple[str, str]]): A set tracking
+            established connections.
+
+        Raises:
+            ParsingError: If connection format, zone references, duplicates,
+            or capacity are invalid.
+        """
         remainder = line.split(":", 1)[1].strip()
         base_info = remainder.split("[")[0].strip()
 
@@ -227,6 +279,17 @@ class Parser:
         defined_connections.add(conn_key)
 
     def parse(self) -> tuple[Graph, int]:
+        """Reads and parses the map file to construct the graph and retrieve
+        the drone count.
+
+        Returns:
+            tuple[Graph, int]: A tuple containing the fully populated Graph
+            and the number of drones.
+
+        Raises:
+            ParsingError: If file reading fails, syntax is invalid, or
+            required elements are missing.
+        """
         try:
             with open(self.filepath, "r", encoding="utf-8") as file:
                 lines = file.readlines()

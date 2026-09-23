@@ -8,6 +8,8 @@ if TYPE_CHECKING:
 
 
 class ZoneTypes(Enum):
+    """Enumeration of all supported zone types.
+    """
     NORMAL = 'normal'
     BLOCKED = 'blocked'
     RESTRICTED = 'restricted'
@@ -15,6 +17,8 @@ class ZoneTypes(Enum):
 
 
 class Zone:
+    """Represents a node (zone) in the network graph.
+    """
     def __init__(
         self,
         name: str,
@@ -26,6 +30,23 @@ class Zone:
         is_start: bool = False,
         is_end: bool = False,
     ) -> None:
+        """Initialize a Zone instance.
+
+        Args:
+            name (str): Unique name of the zone (no spaces or dashes).
+            x_location (int): Integer X coordinate.
+            y_location (int): Integer Y coordinate.
+            color (str | None, optional): Optional color string for
+            visualization. Defaults to None.
+            zone_type (ZoneTypes):Zone type defining movement properties.
+            Defaults to ZoneTypes.NORMAL.
+            max_drones (int, optional): Maximum concurrent occupants
+            (ignored for start/end). Defaults to 1.
+            is_start (bool, optional): True if this is the start hub.
+            Defaults to False.
+            is_end (bool, optional): True if this is the end hub.
+            Defaults to False.
+        """
         self.name: str = name
         self.x_location: int = x_location
         self.y_location: int = y_location
@@ -42,14 +63,25 @@ class Zone:
 
     @property
     def entry_cost(self) -> int:
+        """
+        Returns:
+            int: Return the turn cost to move into this zone.
+        """
         if self.type == ZoneTypes.RESTRICTED:
             return 2
         return 1
 
     @property
     def is_walkable(self) -> bool:
+        """
+        Returns:
+            bool: Return True if drones can traverse this zone.
+        """
         return self.type != ZoneTypes.BLOCKED
 
     def __repr__(self) -> str:
-        """Return string representation of the drone."""
+        """
+        Returns:
+            str: Return string representation of the drone.
+        """
         return f"Zone({self.name}, location={self.type.value})"

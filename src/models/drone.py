@@ -8,7 +8,14 @@ if TYPE_CHECKING:
 
 
 class Drone:
+    """Represents an autonomous drone traversing the network.
+    """
     def __init__(self, drone_id: int, initial_zone: Zone) -> None:
+        """Initialize a Drone instance.
+        Args:
+            drone_id (int): Unique identifier for the drone.
+            initial_zone (Zone): The starting zone where the drone begins.
+        """
         self.drone_id: int = drone_id
         self.name: str = f"D{drone_id}"
         self.current_zone: Zone | None = initial_zone
@@ -18,5 +25,9 @@ class Drone:
         self.is_delivered: bool = False
 
     def __repr__(self) -> str:
+        """
+        Returns:
+            str: Return string representation of the drone.
+        """
         loc = self.current_zone.name if self.current_zone else "in_transit"
         return f"Drone({self.name}, location={loc})"
