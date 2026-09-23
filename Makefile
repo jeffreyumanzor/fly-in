@@ -1,22 +1,22 @@
-.PHONY: install run debug clean lint lint-strict uv
-
-py := python3
+export PYGAME_HIDE_SUPPORT_PROMPT=1
+.PHONY: install run debug clean lint
 
 install:
 	uv sync
+
 run:
-	uv run $(py) main.py $(input)
+	uv run main.py $(ARGS)
 
 debug:
-	$(py) -m pdb a_maze_ing.py config.txt
+	uv run python -m pdb main.py $(ARGS)
 
 clean:
-	rm -rf __pycache__ .mypy_cache
+	find . -type d -name "__pycache__" -exec rm -rf {} +
+	rm -rf .mypy_cache .pytest_cache output
 
 lint:
-	-flake8 .
-	mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
+	uv run flake8 .
+	uv run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs
 
-lint-strict:
-	-flake8 .
-	mypy . --strict
+test:
+	uv run pytest

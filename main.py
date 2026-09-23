@@ -85,7 +85,10 @@ class App:
             return 1
 
         if not self.args.no_gui:
-            SimulationGUI(graph, drones, result).run()
+            try:
+                SimulationGUI(graph, drones, result).run()
+            except KeyboardInterrupt:
+                print("Fly-in was interrupted by user")
 
         return 0
 
