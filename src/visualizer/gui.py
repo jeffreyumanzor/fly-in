@@ -9,9 +9,9 @@ from src.router import ScheduledMove
 from src.simulation import SimulationResult
 from src.visualizer.renderer import Renderer
 
-SCREEN_SIZE = (900, 700)
+SCREEN_SIZE = (900, 900)
 BACKGROUND_COLOR = (245, 245, 245)
-TURN_DURATION_MS = 900  # cuánto dura, en ms reales, animar un turno completo
+TURN_DURATION_MS = 1000
 
 
 def _generate_drone_colors(count: int) -> list[tuple[int, int, int]]:
@@ -81,6 +81,7 @@ class SimulationGUI:
             self._current_pos)
 
         self._delivered: set[int] = set()
+        self._pending_delivery: set[int] = set()
 
         if self.result.frames:
             self._prepare_turn(self.result.frames[0])
@@ -122,7 +123,7 @@ class SimulationGUI:
             if isinstance(target, Zone):
                 end_pos = self.renderer.zone_position(target)
                 if target.is_end:
-                    self._delivered.add(drone.drone_id)
+                    self._pending_delivery.add(drone.drone_id)
             elif isinstance(target, Connection):
                 # Punto medio de la conexión: representa "en tránsito".
                 a = self.renderer.zone_position(target.point_a)
@@ -150,6 +151,9 @@ class SimulationGUI:
             )
 
         if t >= 1.0:
+            self._delivered |= self._pending_delivery
+            self._pending_delivery.clear()
+
             self._turn_index += 1
             self._elapsed_ms = 0.0
             if self._turn_index < len(self.result.frames):

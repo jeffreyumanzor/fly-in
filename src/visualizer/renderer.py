@@ -28,7 +28,7 @@ NAMED_COLORS: dict[str, tuple[int, int, int]] = {
 
 ZONE_RADIUS = 22
 DRONE_RADIUS = 7
-MARGIN = 80
+MARGIN = 100
 
 
 class Renderer:
@@ -88,11 +88,13 @@ class Renderer:
 
             label = self.font.render(zone.name, True, (20, 20, 20))
             surface.blit(
-                label, (pos[0] - label.get_width() // 2, pos[1] + ZONE_RADIUS + 4)
+                label, (
+                    pos[0] - label.get_width() // 2, pos[1] + ZONE_RADIUS + 4)
             )
 
             if zone.max_drones != float("inf") and zone.max_drones > 1:
-                cap = self.font.render(f"x{int(zone.max_drones)}", True, (255, 255, 255))
+                cap = self.font.render(f"x{int(zone.max_drones)}", True, (
+                    255, 255, 255))
                 surface.blit(cap, (pos[0] - 8, pos[1] - 8))
 
     def draw_drone(
