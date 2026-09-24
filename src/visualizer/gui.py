@@ -12,7 +12,7 @@ from src.visualizer.renderer import Renderer
 
 SCREEN_SIZE = (900, 900)
 BACKGROUND_COLOR = (245, 245, 245)
-TURN_DURATION_MS = 1000
+TURN_DURATION_MS = 1150
 OVERLAP_OFFSET_RADIUS = 12
 
 
@@ -122,10 +122,12 @@ class SimulationGUI:
                     return False
                 if event.key == pygame.K_SPACE:
                     self._paused = not self._paused
-                if event.key == pygame.K_EQUALS:
+                if event.unicode in ("+", "="):
                     self._speed = min(self._speed * 1.5, 8.0)
-                if event.key == pygame.K_MINUS:
+                if event.unicode in ("-", "_"):
                     self._speed = max(self._speed / 1.5, 0.25)
+                if event.key == pygame.K_r:
+                    self._restart()
         return True
 
     def _prepare_turn(self, frame: list[tuple[Drone, ScheduledMove]]) -> None:
@@ -224,9 +226,8 @@ class SimulationGUI:
         )
         self.screen.blit(font.render(text, True, (20, 20, 20)), (10, 10))
         hint = font.render(
-            "SPACE: pause/play   +/-: speed   ESC: quit",
-            True,
-            (90, 90, 90)
+            "SPACE: pause/play   +/-: speed   R: restart   ESC: quit",
+            True, (90, 90, 90),
         )
         self.screen.blit(hint, (10, SCREEN_SIZE[1] - 24))
 
@@ -269,3 +270,22 @@ class SimulationGUI:
                 resolved[drone_id] = (base_x + offset_x, base_y + offset_y)
 
         return resolved
+
+    def _restart(self) -> None:
+        """
+        Resets animation playback to the beginning (turn 0) using
+        pre-calculated data from self.result.frames, skipping any router
+        or engine recalculations.
+        """
+        start = self.graph.start_hub
+        assert start is not None
+        start_pos = self.renderer.zone_position(start)
+
+        self._turn_index = 0
+        self._elapsed_ms = 0.0
+        self._delivered.clear()
+        self._pending_delivery.clear()
+        self._current_pos = {d.drone_id: start_pos for d in self.drones}
+
+        if self.result.frames:
+            self._prepare_turn(self.result.frames[0])
